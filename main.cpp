@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[]) {
 
-	std::cout << "FRESH COMPILE 5" << std::endl;
+	std::cout << "FRESH COMPILE" << std::endl;
 	
 	Server* server = new Server();
 	

@@ -306,13 +306,36 @@ public:
 	
 	};
 	
-	static void process_GET() {
-	
-		// move logic for static file response in here
-		// write logic for executing cpp files based on
-		// request file extension
+	static std::string process_GET(char buffer[1024]) {
 	
 		std::cout << "GETING" << std::endl;
+		
+		std::cout << "Type:" <<  Socket::get_request_type(buffer) << std::endl;
+
+		auto [url_map, query_string] = Socket::get_query_string_map(buffer);
+		
+		/***
+		 *
+		 * testing tuple return
+		 *
+		 */
+		std::map<std::string,std::string>::iterator it;
+		for (it = url_map.begin(); it != url_map.end(); ++it) {
+      std::cout << "Ky::: " << it->first << ", Vl::: " << it->second;
+ 		  std::cout << std::endl;
+    }
+		std::cout << query_string << std::endl;
+		/***
+		 *
+		 * testing tuple return
+		 *
+		 */
+		
+		std::string request_file = WEB_ROOT + Socket::get_request_data("url_path",buffer);
+		
+		std::string response = Socket::process_request_response(request_file);
+		
+		return response;
 	
 	};
 	
@@ -321,7 +344,7 @@ public:
 		std::ifstream file(request_file);
 	
 		if (file.good()) {
-       		std::stringstream buffer;
+      std::stringstream buffer;
 			buffer << file.rdbuf();
 			std::string request_file_buffer = buffer.str();
 			request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " \
@@ -355,12 +378,6 @@ public:
 	};
 	
 	static std::string process_request(char buffer[1024]) {
-	
-		/***
-		 *
-		 * logic from 222 to 256 needs to be reworked and placed in process* 		 * functinos
-		 *
-		 ***/
 
 		std::cout << "\n" << buffer << std::endl;
 		
@@ -368,7 +385,7 @@ public:
 		
 		if (req_type == "GET") {
 		
-			Socket::process_GET();
+			return Socket::process_GET(buffer);
 		
 		}
 		
@@ -390,32 +407,7 @@ public:
 		
 		}
 		
-		std::cout << "Type:" <<  Socket::get_request_type(buffer) << std::endl;
-
-		auto [url_map, query_string] = Socket::get_query_string_map(buffer);
-		
-		/***
-		 *
-		 * testing tuple return
-		 *
-		 */
-		std::map<std::string,std::string>::iterator it;
-		for (it = url_map.begin(); it != url_map.end(); ++it) {
-       		std::cout << "Ky::: " << it->first << ", Vl::: " << it->second;
- 			std::cout << std::endl;
-       	}
-		std::cout << query_string << std::endl;
-		/***
-		 *
-		 * testing tuple return
-		 *
-		 */
-		
-		std::string request_file = WEB_ROOT + 			Socket::get_request_data("url_path",buffer);
-		
-		std::string response = Socket::process_request_response(request_file);
-
-		return response;
+		return "Not found";
 
 	};
 	
