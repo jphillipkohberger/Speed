@@ -320,9 +320,9 @@ public:
 		 */
 		std::map<std::string,std::string>::iterator it;
 		for (it = url_map.begin(); it != url_map.end(); ++it) {
-      std::cout << "Key::: " << it->first << ", Val::: " << it->second;
- 		  std::cout << std::endl;
-    }
+            std::cout << "Key::: " << it->first << ", Val::: " << it->second;
+ 		    std::cout << std::endl;
+        }
 		std::cout << query_string << std::endl;
 		
 		std::string request_file = WEB_ROOT + Socket::get_request_data("url_path",buffer);
@@ -334,38 +334,44 @@ public:
 	};
 	
 	static std::string get_file_type(std::string file) {
-	  
-	  std::cout << "GETTING FILE TYPE:: " << file.substr(file.rfind(".") + 1) << std::endl;
-	  return file.substr(file.rfind(".") + 1);
+	    std::cout << "GETTING FILE TYPE:: " << file.substr(file.rfind(".") + 1) << std::endl;
+	    return file.substr(file.rfind(".") + 1);
 	};
 	
 	static std::string get_file_name(std::string file) {
-	  
-	  std::cout << "GETTING FILE NAME:: " << file.substr(file.rfind("/") + 1) << std::endl;
-	  return file.substr(file.rfind("/") + 1);
+	    std::cout << "GETTING FILE NAME:: " << file.substr(file.rfind("/") + 1) << std::endl;
+	    return file.substr(file.rfind("/") + 1);
 	};
+	
+	static bool is_executable(std::string request_file) {
+        // X_OK checks for execute permission
+        return (access(request_file.c_str(), X_OK) == 0); 
+    }
 	
 	static std::string process_file_exists(std::string request_file) {
 	
 		std::ifstream file(request_file);
 	
 		if (file.good()) {
-		  
-		  std::string file_name = get_file_name(request_file);
-		  
-		  std::string file_type = get_file_type(request_file);
-		  
-      std::stringstream buffer;
-			buffer << file.rdbuf();
-			std::string request_file_buffer = buffer.str();
-			request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " \
-				"text/plain\nContent-Length: " + 
-				std::to_string(request_file_buffer.length()) + 
-				"\n\n" + request_file_buffer;
+		    
+		    if (is_executable(request_file)) {
+		        
+		        std::string file_name = get_file_name(request_file);
+		        std::string file_type = get_file_type(request_file);
+		        
+		    }  else {
+		        
+                std::stringstream buffer;
+			    buffer << file.rdbuf();
+			    std::string request_file_buffer = buffer.str();
+			    request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " \
+				    "text/plain\nContent-Length: " + 
+				    std::to_string(request_file_buffer.length()) + 
+				    "\n\n" + request_file_buffer;
 				
-		    return request_file_buffer;
-    	}
-
+		        return request_file_buffer;
+    	    }
+		}
 		return "";
 	};
 	
@@ -379,9 +385,9 @@ public:
 			
 			return response;
 
-    } else {
+        } else {
       
-      std::cout << "File not exists: " << request_file << std::endl;
+            std::cout << "File not exists: " << request_file << std::endl;
       
 			std::string response = "HTTP/1.1 200 OK\nContent-Type: " \
 				"text/plain\nContent-Length: 28\n\nSpeed server file not found!";
@@ -423,7 +429,7 @@ public:
 
 	};
 	
-	static std::tuple<std::map<std::string, std::string>, std::string> 		get_query_string_map(char buffer[1024]) {
+	static std::tuple<std::map<std::string, std::string>, std::string>  get_query_string_map(char buffer[1024]) {
 	
 		std::string request(buffer);
     	std::istringstream iss(request);
