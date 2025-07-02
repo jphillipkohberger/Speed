@@ -184,7 +184,6 @@ public:
 	std::vector<std::pair<std::string, std::string>> _GET_parameters;
 	static std::string _GET_response;
 	
-	
 	static std::string get_request_type(char* buffer) {
 	
 		std::string full_buffer_str(buffer);
@@ -347,6 +346,39 @@ public:
         // X_OK checks for execute permission
         return (access(request_file.c_str(), X_OK) == 0); 
     }
+    
+    static void pthread_exec_file(void *arg) {
+      
+        std::string request_file = "../web/test/exc/speed.exc";
+        std::cout << "FILE!!!!!" << request_file << std::endl;
+        
+        FILE* pipe = popen(request_file.c_str(), "r");
+        if (pipe) {
+            char buffer[128];
+            std::string result = "";
+            while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+                result += buffer;
+            }
+            
+            std::string request_file_buffer = result;
+	        request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " \
+		        "text/plain\nContent-Length: " + 
+		        std::to_string(request_file_buffer.length()) + 
+		        "\n\n" + request_file_buffer;
+        }  
+    
+    };
+    
+    static std::string get_response_string(std::string data){
+        
+        std::string request_file_buffer = data;
+	    request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " \
+		    "text/plain\nContent-Length: " + 
+		    std::to_string(request_file_buffer.length()) + 
+		    "\n\n" + request_file_buffer;
+		    
+		   return request_file_buffer;
+    };
 	
 	static std::string process_file_exists(std::string request_file) {
 	
@@ -359,17 +391,19 @@ public:
 		        std::string file_name = get_file_name(request_file);
 		        std::string file_type = get_file_type(request_file);
 		        
+		        //char* args[1] = {"../web/test/exc/speed.exc"};
+		        //pthread_t new_thread_id;
+                //int result = pthread_create(&new_thread_id, NULL, pthread_exec_file, args);
+                
+                std::string response = "Working on executing script";
+                return get_response_string(response);
+		
 		    }  else {
 		        
                 std::stringstream buffer;
 			    buffer << file.rdbuf();
-			    std::string request_file_buffer = buffer.str();
-			    request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " \
-				    "text/plain\nContent-Length: " + 
-				    std::to_string(request_file_buffer.length()) + 
-				    "\n\n" + request_file_buffer;
-				
-		        return request_file_buffer;
+			    
+			    return get_response_string(buffer.str());
     	    }
 		}
 		return "";
