@@ -273,12 +273,6 @@ public:
 	
 	};
 	
-	static void process_POST() {
-	
-		std::cout << "POSTING" << std::endl;
-	
-	};
-	
 	static std::string process_GET(char buffer[1024]) {
 	
 		std::cout << "GETING" << std::endl;
@@ -316,7 +310,7 @@ public:
         return (access(request_file.c_str(), X_OK) == 0); 
     }
     
-    static void pthread_exec_file(void *arg) {
+    static void system_exec_file() {
       
         std::string request_file = "../web/test/exc/speed.exc";
         std::cout << "FILE!!!!!" << request_file << std::endl;
@@ -339,25 +333,29 @@ public:
     
     static std::string get_response_string(std::string data) {
         std::string request_file_buffer = data;
-	    request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " \
-		    "text/plain\nContent-Length: " + 
-		    std::to_string(request_file_buffer.length()) + 
-		    "\n\n" + request_file_buffer;
+	    request_file_buffer  =  "HTTP/1.1 200 OK\nContent-Type: " \
+		                        "text/plain\nContent-Length: " + 
+		                        std::to_string(request_file_buffer.length()) + 
+		                        "\n\n" + request_file_buffer;
 		    
 		   return request_file_buffer;
     };
 	
 	static std::string process_file_exists(std::string request_file) {
 	
+	    std::cout << "Working execing script 1" << request_file << std::endl;
 		std::ifstream file(request_file);
 		if (file.good()) {
+		    
+		    std::cout << "Working execing script 2" << request_file << std::endl;
 		    if (is_executable(request_file)) {
 		        std::string file_name = get_file_name(request_file);
 		        std::string file_type = get_file_type(request_file);
-		        //char* args[1] = {"../web/test/exc/speed.exc"};
-		        //pthread_t new_thread_id;
-                //int result = pthread_create(&new_thread_id, NULL, pthread_exec_file, args);
+		        
+		        std::cout << "Working execing script 3" << request_file << std::endl;
                 std::string response = "Working on executing script";
+                system_exec_file();
+                
                 return get_response_string(response);
 		
 		    }  else {
@@ -382,6 +380,15 @@ public:
     	}
 	};
 	
+	static std::string process_POST(char buffer[1024]) {
+	
+	    std::string response = buffer;
+	
+		std::cout << "POSTING" <<  response << std::endl;
+	    
+	    return response;
+	};
+	
 	static std::string process_request(char buffer[1024]) {
 		std::cout << "\n" << buffer << std::endl;
 		std::string req_type = Socket::get_request_type(buffer);
@@ -389,7 +396,7 @@ public:
 			return Socket::process_GET(buffer);
 		}
 		if (req_type == "POST") {
-			Socket::process_POST();		
+			return Socket::process_POST(buffer);		
 		}
 		if (req_type == "PUT") {
 			Socket::process_PUT();
@@ -444,7 +451,6 @@ public:
     	std::istringstream iss(request);
     	std::string request_line;
     	std::getline(iss, request_line);
-
     	std::istringstream iss_line(request_line);
     	std::string method, url_path, http_version;
     	iss_line >> method >> url_path >> http_version;
@@ -574,30 +580,20 @@ public:
 	void make() {
 		this->_socket = new Socket();
 		this->_socket->make();
-    }
+    };
 
 	void start_many() {
-	
 		this->_socket->__CLI__ = this->__CLI__;
-		
 		this->_socket->start_many();
-		
-    }
+    };
 
 	void start() {
-		
 		this->_socket->start();
-		
-	}
+	};
 
     void stop() {
-
 		this->_socket->kill();
-		
 		delete this->_socket;
-	
-    }
-
+    };
 };
-
 #endif

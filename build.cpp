@@ -5,7 +5,7 @@
 #include <iostream>
 
 //./server many pool &>/dev/null &
-//curl -d "foo=bar&bar=foo" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:8080/test/html/index.html
+//curl --http0.9 -d "foo=bar&bar=foo" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:8080/test/html/index.html
 
 /***
  * CLI - Need functions for compiling various files, executing
