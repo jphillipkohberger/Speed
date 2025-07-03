@@ -95,7 +95,6 @@ public:
 	
 		ThreadPool* pool = static_cast<ThreadPool*>(arg);
 		
-		int i = 0;
 		while (true) {
 		
 			pthread_mutex_lock(&pool->queue_mutex);
@@ -109,9 +108,9 @@ public:
 				});
 				if (pool->stop_ && pool->tasks_.empty()) {
                  	return nullptr;
-               }
+            }
 
-				task = pool->tasks_.front();
+			task = pool->tasks_.front();
            	pool->tasks_.pop();
 			}
 			
@@ -121,9 +120,7 @@ public:
 				
            task();
         }
-
 		return nullptr;	
-		
     }
 	
 	void add_thread(void*(*callback)(void*), void *arg) {
@@ -180,7 +177,7 @@ public:
 	std::string _request_file = "";
 	std::string __CLI__;
 	std::string _request_file_buffer = "HTTP/1.1 404 OK\nContent-Type: " \
-			"text/plain\nContent-Length: 28\n\nLithon speed file not found!";
+	    "text/plain\nContent-Length: 28\n\nLithon speed file not found!";
 	std::vector<std::pair<std::string, std::string>> _GET_parameters;
 	static std::string _GET_response;
 	
@@ -252,34 +249,11 @@ public:
 					worker_thread_task(((void*)&_new_socket));
 
 				});
-			
 			}
-			
 			i++;
     	}
-
 		delete thread_pool;
-
 	}
-	
-	void make_socket_request() {
-	
-	};
-	
-	struct processed_parameters {
-	
-		int num;
-		
-	};
-	
-	processed_parameters process_parameters() {
-	
-		processed_parameters procs_params;
-		
-		procs_params.num = 11;	
-	
-		return procs_params;
-	};
 	
 	static void process_DELETE() {
 	
@@ -308,9 +282,7 @@ public:
 	static std::string process_GET(char buffer[1024]) {
 	
 		std::cout << "GETING" << std::endl;
-		
 		std::cout << "Type:" <<  Socket::get_request_type(buffer) << std::endl;
-
 		auto [url_map, query_string] = Socket::get_query_string_map(buffer);
 		/***
 		 *
@@ -323,13 +295,10 @@ public:
  		    std::cout << std::endl;
         }
 		std::cout << query_string << std::endl;
-		
 		std::string request_file = WEB_ROOT + Socket::get_request_data("url_path",buffer);
-		
 		std::string response = Socket::process_request_response(request_file);
 		
 		return response;
-	
 	};
 	
 	static std::string get_file_type(std::string file) {
@@ -366,11 +335,9 @@ public:
 		        std::to_string(request_file_buffer.length()) + 
 		        "\n\n" + request_file_buffer;
         }  
-    
     };
     
-    static std::string get_response_string(std::string data){
-        
+    static std::string get_response_string(std::string data) {
         std::string request_file_buffer = data;
 	    request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " \
 		    "text/plain\nContent-Length: " + 
@@ -383,26 +350,19 @@ public:
 	static std::string process_file_exists(std::string request_file) {
 	
 		std::ifstream file(request_file);
-	
 		if (file.good()) {
-		    
 		    if (is_executable(request_file)) {
-		        
 		        std::string file_name = get_file_name(request_file);
 		        std::string file_type = get_file_type(request_file);
-		        
 		        //char* args[1] = {"../web/test/exc/speed.exc"};
 		        //pthread_t new_thread_id;
                 //int result = pthread_create(&new_thread_id, NULL, pthread_exec_file, args);
-                
                 std::string response = "Working on executing script";
                 return get_response_string(response);
 		
 		    }  else {
-		        
                 std::stringstream buffer;
 			    buffer << file.rdbuf();
-			    
 			    return get_response_string(buffer.str());
     	    }
 		}
@@ -410,19 +370,12 @@ public:
 	};
 	
 	static std::string process_request_response(std::string request_file) {
-	
 		std::ifstream file(request_file);
-	
 		if (file.good()) {
-		
 			std::string response = process_file_exists(request_file);
-			
 			return response;
-
         } else {
-      
             std::cout << "File not exists: " << request_file << std::endl;
-      
 			std::string response = "HTTP/1.1 200 OK\nContent-Type: " \
 				"text/plain\nContent-Length: 28\n\nSpeed server file not found!";
 			return response;
@@ -430,52 +383,32 @@ public:
 	};
 	
 	static std::string process_request(char buffer[1024]) {
-
 		std::cout << "\n" << buffer << std::endl;
-		
 		std::string req_type = Socket::get_request_type(buffer);
-		
 		if (req_type == "GET") {
-		
 			return Socket::process_GET(buffer);
-		
 		}
-		
 		if (req_type == "POST") {
-		
 			Socket::process_POST();		
-		
 		}
-		
 		if (req_type == "PUT") {
-		
 			Socket::process_PUT();
-		
 		}
-		
 		if (req_type == "DELETE") {
-		
 			Socket::process_DELETE();
-		
 		}
-		
 		return "Not found";
-
 	};
 	
-	static std::tuple<std::map<std::string, std::string>, std::string>  get_query_string_map(char buffer[1024]) {
+	static std::tuple<std::map<std::string, std::string>, std::string>  
+	    get_query_string_map(char buffer[1024]) {
 	
-		std::string request(buffer);
+		std::string request(buffer), request_line, method, url_path, http_version;
     	std::istringstream iss(request);
-    	std::string request_line;
     	std::getline(iss, request_line);
-
     	std::istringstream iss_line(request_line);
-    	std::string method, url_path, http_version;
     	iss_line >> method >> url_path >> http_version;
-
 		std::cout << "Url path: " <<  url_path << std::endl;
-		
 		std::map<std::string, std::string> url_map;
 		std::string query_string = url_path;
 		int question = query_string.find("?");
@@ -486,8 +419,7 @@ public:
 			
 			size_t start_pos = query_string.find_first_of("?");
 			query_string = query_string.substr(
-			start_pos, std::string::npos);
-					
+			    start_pos, std::string::npos);
 			query_string = query_string.substr(1);
 			std::stringstream ss(query_string);
 			std::string pair;
@@ -518,24 +450,19 @@ public:
     	iss_line >> method >> url_path >> http_version;
 
 		if (name == "url_path") {			
-			
 			char target_char = '?';
     		size_t pos = url_path.find(target_char);
     		if (pos != std::string::npos) {
         		url_path = url_path.erase(pos);
     		}
-			
 			return url_path;
 		}
-		
 		if (name == "method") {
 			return method;
 		}
-
 		if (name == "http_version") {
 			return http_version;
 		}
-		
     	std::string data;
     	std::string line;
     	while (std::getline(iss, line)) {
@@ -552,113 +479,89 @@ public:
             	return data;
         	}
     	}
-
     	return "";
-	}
+	};
 	
 	bool is_socket_valid(int sockfd) {
   		if (fcntl(sockfd, F_GETFD) == -1) {
     		if (errno == EBADF) {
-				// Socket file descriptor is invalid
       			return false;
     		} else {
-      			// An error occurred other than EBADF
       			throw std::system_error(errno, std::generic_category(), "fcntl");
     		}
   		}
-		// Socket file descriptor is valid
   		return true;
 	};
 	
 	void start(std::string url = "") {
 
 		char buffer[BUFFER_SIZE] = {0};
-
 		// Accepting and handling connections
 		this->_new_socket = accept(
 			this->_server_fd, 
 			(struct sockaddr *)&this->_address, 
 			(socklen_t*)&this->_addrlen);
-		
     	if (this->_conn < 0) {
        		perror("accept");    
         	exit(EXIT_FAILURE);
 		}
-		
 		worker_thread_task(((void*)&this->_new_socket));
-		
 	};
 
 	void kill() {
-	
 		close(this->_new_socket);
     	close(this->_server_fd);
-	
 	};
 	
 	void make() {
-	
+
 		int bound_socket, set_sock_opt, opt = 2;
 		this->_addrlen = sizeof(this->_address);
-			
     	this->_server_fd = (socket(AF_INET, SOCK_STREAM, 0));
     	if (this->_server_fd == -1) {
 			std::cerr << "Error creating socket" << std::endl;
 			return;
 	    }
-
 		// Forcefully attaching socket to the port 8080
 		try{
-	
 			// Verify server file descriptor
 			bool socket_valid = is_socket_valid(this->_server_fd);
-		
 			set_sock_opt = setsockopt(
 				this->_server_fd, 
 				SOL_SOCKET, 
 				SO_REUSEADDR, 
 				&opt, 
 				sizeof(opt));
-			
 		} catch (const std::system_error e) {
         	std::cerr << "Error: Invalid argument - " << e.what() << std::endl;
 		}
-		
 		if (set_sock_opt) {
         	perror("setsockopt");
         	exit(EXIT_FAILURE);
     	}
-	
 		// set sockaddr_in structure
 		this->_address.sin_family = AF_INET;
 		this->_address.sin_addr.s_addr = INADDR_ANY;
 		this->_address.sin_port = htons(PORT_ONE);
 		this->_address.sin_addr.s_addr = inet_addr("127.0.0.1");
-		
 		std::cout << "Server listening on port: " << PORT_ONE<< std::endl;
-		
 		// Binding the socket to the address
 		bound_socket = bind(
 			this->_server_fd, 
 			(struct sockaddr *)&this->_address, 
 			sizeof(this->_address));
-		
     	if (bound_socket < 0) {
         	perror("bind failed");
         	exit(EXIT_FAILURE);
     	}
-
 		std::cout << "Server file descriptor: " << this->_server_fd << std::endl;
-		
 		// Listening for connections
 		this->_conn = listen(this->_server_fd, 3);
 		if (this->_conn < 0) {
 			perror("listen failed ooff");
 			exit(EXIT_FAILURE);
 		}
-
 	}
-
 };
 
 class Server {
@@ -669,9 +572,7 @@ public:
 	Socket* _socket;
 	
 	void make() {
-		
 		this->_socket = new Socket();
-		
 		this->_socket->make();
     }
 
