@@ -199,20 +199,25 @@ public:
 		return "";
 		
 	}
+		
+	static void print(char buffer[1024]) {
+	    std::cout << "\n\n" << buffer << "\n\n" << std::endl;
+	};		
+		
+	static void print(std::string str) {
+	    std::cout << "\n\n" + str + "\n\n" << std::endl;
+	};	
 			
 	static void* worker_thread_task(void* socketDescriptor) {
-	
     	int clientSocket = *(int*)socketDescriptor;
     	char buffer[1024] = {0};
     	recv(clientSocket, buffer, 1024, 0);
-
 		std::string response = Socket::process_request(buffer);
-
+		//response = "\n\n";
     	send(clientSocket, response.c_str(), strlen(response.c_str()), 0);
     	close(clientSocket);
 		return nullptr;
-		
-	}
+	};
 			
 	void start_many() {
 		
@@ -263,19 +268,19 @@ public:
 	
 	static void process_PUT() {
 	
-		std::cout << "PUTING" << std::endl;
+		std::cout << "PUTTING" << std::endl;
 
 	};
 	
 	static void process_FILE() {
 	
-		std::cout << "FILEING" << std::endl;
+		std::cout << "FILING" << std::endl;
 	
 	};
 	
 	static std::string process_GET(char buffer[1024]) {
 	
-		std::cout << "GETING" << std::endl;
+		std::cout << "GETTING" << std::endl;
 		std::cout << "Type:" <<  Socket::get_request_type(buffer) << std::endl;
 		auto [url_map, query_string] = Socket::get_query_string_map(buffer);
 		/***
@@ -291,6 +296,8 @@ public:
 		std::cout << query_string << std::endl;
 		std::string request_file = WEB_ROOT + Socket::get_request_data("url_path",buffer);
 		std::string response = Socket::process_request_response(request_file);
+		
+		print(buffer);
 		
 		return response;
 	};
@@ -381,16 +388,13 @@ public:
 	};
 	
 	static std::string process_POST(char buffer[1024]) {
-	
 	    std::string response = buffer;
-	
-		std::cout << "POSTING" <<  response << std::endl;
-	    
+	    print(response);
 	    return response;
 	};
 	
 	static std::string process_request(char buffer[1024]) {
-		std::cout << "\n" << buffer << std::endl;
+		// std::cout << "\n\nBuffer:\n\n" << buffer << "\n\n" <<std::endl;
 		std::string req_type = Socket::get_request_type(buffer);
 		if (req_type == "GET") {
 			return Socket::process_GET(buffer);
@@ -408,6 +412,35 @@ public:
 	};
 	
 	static std::tuple<std::map<std::string, std::string>, std::string>  
+	    split_query_string_map(std::string query_string) {
+	        
+	    std::map<std::string, std::string> url_map;
+	    
+	    size_t start_pos = query_string.find_first_of("?");
+		if (start_pos == std::string::npos) {
+			start_pos = 0;
+		}
+		query_string = query_string.substr(
+			start_pos, std::string::npos);
+		query_string = query_string.substr(1);
+		std::stringstream ss(query_string);
+		std::string pair;
+		int i = 0;
+				
+		while (std::getline(ss, pair, '&')) {
+    		size_t pos = pair.find('=');
+    		if (pos != std::string::npos) {
+       		std::string key = pair.substr(0, pos);
+        		std::string value = pair.substr(pos + 1);
+				url_map.insert({key,value});
+				i++;
+    		}
+		}
+	        
+	    return {url_map, query_string};  
+    };     
+	
+	static std::tuple<std::map<std::string, std::string>, std::string>  
 	    get_query_string_map(char buffer[1024]) {
 	
 		std::string request(buffer), request_line, method, url_path, http_version;
@@ -421,29 +454,14 @@ public:
 		int question = query_string.find("?");
 		int equals = query_string.find("=");
 		std::vector<std::string> _GET_structure;
-		
-		if (question != std::string::npos && equals != std::string::npos) {
-			
-			size_t start_pos = query_string.find_first_of("?");
-			query_string = query_string.substr(
-			    start_pos, std::string::npos);
-			query_string = query_string.substr(1);
-			std::stringstream ss(query_string);
-			std::string pair;
-			int i = 0;
-				
-			while (std::getline(ss, pair, '&')) {
-        		size_t pos = pair.find('=');
-        		if (pos != std::string::npos) {
-           		std::string key = pair.substr(0, pos);
-            		std::string value = pair.substr(pos + 1);
-					url_map.insert({key,value});
-					i++;
-        		}
-    		}
+		//query_string = "foo=doo&zoo=chew&bye=try";
+		if (question != std::string::npos && equals != std::string::npos) {	
+    		auto [rl_map, qstr] = split_query_string_map(query_string);
+    		url_map = rl_map;
+    		query_string = qstr;
 		}
-		return {url_map, query_string};
-	}
+		return {url_map,query_string};
+	};
 	
 	static std::string get_request_data(std::string name,char buffer[1024]) {
 		

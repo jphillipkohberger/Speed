@@ -4,7 +4,11 @@
 #include "classes.cpp"
 
 int main(int argc, char* argv[]) {
-	std::cout << "FRESH COMPILE" << std::endl;
+    // pkill server && g++ -std=c++17 main.cpp -o server && ./server many pooled &
+    // std::cout << "\nKilling server:\n" << std::endl;
+    // system("pkill server");
+    // std::cout << "\nCompiling server:\n" << std::endl;
+    // system("g++ -std=c++17 main.cpp -o server");
 	Server* server = new Server();
 	server->make();
 	if (argc == 3 && strcmp(argv[2],"pooled") == 0) {
