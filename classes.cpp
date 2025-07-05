@@ -213,7 +213,6 @@ public:
     	char buffer[1024] = {0};
     	recv(clientSocket, buffer, 1024, 0);
 		std::string response = Socket::process_request(buffer);
-		//response = "\n\n";
     	send(clientSocket, response.c_str(), strlen(response.c_str()), 0);
     	close(clientSocket);
 		return nullptr;
@@ -388,8 +387,19 @@ public:
 	};
 	
 	static std::string process_POST(char buffer[1024]) {
+	    std::string query_string = get_request_data("post_data", buffer);
+	    auto [url_map, qstr] = split_query_string_map(query_string);
+	    /***
+		 *
+		 * testing tuple return
+		 *
+		 */
+		std::map<std::string,std::string>::iterator it;
+		for (it = url_map.begin(); it != url_map.end(); ++it) {
+            std::cout << "Key::: " << it->first << ", Val::: " << it->second;
+ 		    std::cout << std::endl;
+        }
 	    std::string response = buffer;
-	    print(response);
 	    return response;
 	};
 	
@@ -454,7 +464,6 @@ public:
 		int question = query_string.find("?");
 		int equals = query_string.find("=");
 		std::vector<std::string> _GET_structure;
-		//query_string = "foo=doo&zoo=chew&bye=try";
 		if (question != std::string::npos && equals != std::string::npos) {	
     		auto [rl_map, qstr] = split_query_string_map(query_string);
     		url_map = rl_map;
@@ -487,21 +496,33 @@ public:
 		if (name == "http_version") {
 			return http_version;
 		}
-    	std::string data;
-    	std::string line;
+    	std::string data, line;
+    	int current, previous = -1;
     	while (std::getline(iss, line)) {
         	if (line.rfind(name, 0) == 0) {
             	data = line.substr(name.length());
             	size_t start_pos = data.find_first_not_of(" \t");
             	if (start_pos != std::string::npos) {
-                 data = data.substr(start_pos);
+                    data = data.substr(start_pos);
             	}
             	size_t end_pos = data.find_first_of(" \t\r\n");
             	if(end_pos != std::string::npos) {
-               	data = data.substr(0, end_pos);
+               	    data = data.substr(0, end_pos);
             	}
             	return data;
         	}
+        	size_t end_pos = line.find_last_not_of(" \t\n\r\f\v");
+            if (std::string::npos == end_pos) {
+                current = 1;
+            }
+            if (previous != -1) {
+                if (previous == 1) {
+                    if (name == "post_data") {
+                        return "?" + line;
+                    }
+                }
+            }
+            previous = current;
     	}
     	return "";
 	};
