@@ -30,12 +30,14 @@
 #include <cerrno>
 #include <system_error>
 #include <cstdlib>
-
+#include "nlohmann/json.hpp"
 #define PORT_ONE 8080
 #define BUFFER_SIZE 1024
 #define WEB_ROOT "../web" //relative to this file
 #define THREAD_POOL_SIZE 5
 #define TASK_COUNT 10
+
+using json = nlohmann::json;
 
 pthread_mutex_t _mutex;
 
@@ -386,9 +388,33 @@ public:
     	}
 	};
 	
+	static std::string get_post_data_type(std::string data_string) {
+
+        int equals = data_string.find("=");
+        int amper = data_string.find("&");
+         if (equals != std::string::npos && amper != std::string::npos) {  
+            return "FORM";        
+        }
+	    
+	    try {
+	        std::string data_str_frst = data_string;
+	        json parsed_json = json::parse(data_str_frst);
+	        if(parsed_json.size() > 0){
+	            return "JSON";
+	        }
+        } catch (const json::parse_error& e) {
+            std::cerr << "JSON parse error: " << e.what() << std::endl;
+        }
+	    return "NONE";
+	}
+	
 	static std::string process_POST(char buffer[1024]) {
-	    std::string query_string = get_request_data("post_data", buffer);
-	    auto [url_map, qstr] = split_query_string_map(query_string);
+	    std::string data_string = get_request_data("post_data", buffer);
+	    std::string data_string_type = get_post_data_type(data_string);
+	    print(data_string_type);
+	    print(data_string_type);
+	    print(data_string_type);
+	    auto [url_map, qstr] = split_query_string_map(data_string);
 	    /***
 		 *
 		 * testing tuple return
@@ -436,7 +462,7 @@ public:
 		std::stringstream ss(query_string);
 		std::string pair;
 		int i = 0;
-				
+		
 		while (std::getline(ss, pair, '&')) {
     		size_t pos = pair.find('=');
     		if (pos != std::string::npos) {
@@ -446,7 +472,7 @@ public:
 				i++;
     		}
 		}
-	        
+		
 	    return {url_map, query_string};  
     };     
 	
@@ -518,7 +544,7 @@ public:
             if (previous != -1) {
                 if (previous == 1) {
                     if (name == "post_data") {
-                        return "?" + line;
+                        return line;
                     }
                 }
             }

@@ -8,6 +8,7 @@
 //curl --http0.9 -d "foo=bar&bar=foo" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:8080/test/html/index.html
 //pkill server && g++ -std=c++17 main.cpp -o server && ./server many pooled &
 //curl --http0.9 -d "foo=bar&bar=foo" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://127.0.0.1:8080/test/html/index.html
+// curl --http0.9 -X POST http://127.0.0.1:8080/test/html/index.html -H 'Content-Type: application/json' -d '{"name":"Leo","age":26}'
 /***
  * CLI - Need functions for compiling various files, executing
  * various files, automatic compilation on file save
