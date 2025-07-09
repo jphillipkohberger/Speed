@@ -411,9 +411,6 @@ public:
 	static std::string process_POST(char buffer[1024]) {
 	    std::string data_string = get_request_data("post_data", buffer);
 	    std::string data_string_type = get_post_data_type(data_string);
-	    print(data_string_type);
-	    print(data_string_type);
-	    print(data_string_type);
 	    auto [url_map, qstr] = split_query_string_map(data_string);
 	    /***
 		 *
@@ -451,27 +448,46 @@ public:
 	    split_query_string_map(std::string query_string) {
 	        
 	    std::map<std::string, std::string> url_map;
+	    std::string data_string_type = get_post_data_type(query_string);
+	    if (data_string_type == "JSON") {
+	        json parsed_json = json::parse(query_string);
+	        std::string key, value;
+	        if (parsed_json.is_object()) {
+                for (const auto& item : parsed_json.items()) {
+                    /***
+                     * TODO
+                     * must cast or convert all key value pairs to string
+                     * 20250709:1631:00
+                     */
+                    key = item.key();
+                    value = item.value();
+                    url_map.insert({key,value});
+                }
+	        }
+	        return {url_map, query_string};
+	    } else {
 	    
-	    size_t start_pos = query_string.find_first_of("?");
-		if (start_pos == std::string::npos) {
-			start_pos = 0;
-		}
-		query_string = query_string.substr(
-			start_pos, std::string::npos);
-		query_string = query_string.substr(1);
-		std::stringstream ss(query_string);
-		std::string pair;
-		int i = 0;
-		
-		while (std::getline(ss, pair, '&')) {
-    		size_t pos = pair.find('=');
-    		if (pos != std::string::npos) {
-       		std::string key = pair.substr(0, pos);
-        		std::string value = pair.substr(pos + 1);
-				url_map.insert({key,value});
-				i++;
+    	    size_t start_pos = query_string.find_first_of("?");
+    		if (start_pos == std::string::npos) {
+    			start_pos = 0;
     		}
-		}
+    		query_string = query_string.substr(
+    			start_pos, std::string::npos);
+    		query_string = query_string.substr(1);
+    		std::stringstream ss(query_string);
+    		std::string pair;
+    		int i = 0;
+    		
+    		while (std::getline(ss, pair, '&')) {
+        		size_t pos = pair.find('=');
+        		if (pos != std::string::npos) {
+           		std::string key = pair.substr(0, pos);
+            		std::string value = pair.substr(pos + 1);
+    				url_map.insert({key,value});
+    				i++;
+        		}
+    		}
+	    }
 		
 	    return {url_map, query_string};  
     };     
