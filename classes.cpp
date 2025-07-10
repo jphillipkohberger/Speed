@@ -403,7 +403,6 @@ public:
 	            return "JSON";
 	        }
         } catch (const json::parse_error& e) {
-            std::cerr << "JSON parse error: " << e.what() << std::endl;
         }
 	    return "NONE";
 	}
@@ -450,23 +449,19 @@ public:
 	    std::map<std::string, std::string> url_map;
 	    std::string data_string_type = get_post_data_type(query_string);
 	    if (data_string_type == "JSON") {
-	        json parsed_json = json::parse(query_string);
-	        std::string key, value;
-	        if (parsed_json.is_object()) {
-                for (const auto& item : parsed_json.items()) {
-                    /***
-                     * TODO
-                     * must cast or convert all key value pairs to string
-                     * 20250709:1631:00
-                     */
-                    key = item.key();
-                    value = item.value();
-                    url_map.insert({key,value});
-                }
-	        }
+	        try {
+    	        json parsed_json = json::parse(query_string);
+    	        if (parsed_json.is_object()) {
+                    for (const auto& item : parsed_json.items()) {
+                        auto key = item.key();
+                        auto value = item.value();
+                        url_map.insert({key,value});
+                    }
+    	        }
+	        } catch (const json::parse_error& e) {
+            }
 	        return {url_map, query_string};
 	    } else {
-	    
     	    size_t start_pos = query_string.find_first_of("?");
     		if (start_pos == std::string::npos) {
     			start_pos = 0;
