@@ -509,33 +509,50 @@ public:
 		return {url_map,query_string};
 	};
 	
+	struct RequestVariables {
+	    std::istringstream iss;
+	    std::istringstream iss_line;
+	    std::string method;
+	    std::string url_path;
+	    std::string http_version;
+	};
+	
+	static RequestVariables get_request_variables(char buffer[1024]) {
+	    
+	    RequestVariables request_variables;
+	    
+	    std::string request(buffer);
+    	request_variables.iss.str(request);
+    	std::string request_line;
+    	std::getline(request_variables.iss, request_line);
+    	request_variables.iss_line.str(request_line);
+    	std::string method, url_path, http_version;
+    	request_variables.iss_line >> request_variables.method >> request_variables.url_path >> request_variables.http_version;
+    	
+    	return request_variables;
+	}
+	
 	static std::string get_request_data(std::string name,char buffer[1024]) {
 		
-    	std::string request(buffer);
-    	std::istringstream iss(request);
-    	std::string request_line;
-    	std::getline(iss, request_line);
-    	std::istringstream iss_line(request_line);
-    	std::string method, url_path, http_version;
-    	iss_line >> method >> url_path >> http_version;
+    	RequestVariables rv = get_request_variables(buffer);
 
 		if (name == "url_path") {			
 			char target_char = '?';
-    		size_t pos = url_path.find(target_char);
+    		size_t pos = rv.url_path.find(target_char);
     		if (pos != std::string::npos) {
-        		url_path = url_path.erase(pos);
+        		rv.url_path = rv.url_path.erase(pos);
     		}
-			return url_path;
+			return rv.url_path;
 		}
 		if (name == "method") {
-			return method;
+			return rv.method;
 		}
 		if (name == "http_version") {
-			return http_version;
+			return rv.http_version;
 		}
     	std::string data, line;
     	int current, previous = -1;
-    	while (std::getline(iss, line)) {
+    	while (std::getline(rv.iss, line)) {
         	if (line.rfind(name, 0) == 0) {
             	data = line.substr(name.length());
             	size_t start_pos = data.find_first_not_of(" \t");
