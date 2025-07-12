@@ -490,14 +490,12 @@ public:
 	static std::tuple<std::map<std::string, std::string>, std::string>  
 	    get_query_string_map(char buffer[1024]) {
 	
-		std::string request(buffer), request_line, method, url_path, http_version;
-    	std::istringstream iss(request);
-    	std::getline(iss, request_line);
-    	std::istringstream iss_line(request_line);
-    	iss_line >> method >> url_path >> http_version;
-		std::cout << "Url path: " <<  url_path << std::endl;
+	    RequestVariables rv = get_request_variables(buffer);
+	
+		std::string request(buffer);
+		std::cout << "Url path: " <<   rv.url_path << std::endl;
 		std::map<std::string, std::string> url_map;
-		std::string query_string = url_path;
+		std::string query_string =  rv.url_path;
 		int question = query_string.find("?");
 		int equals = query_string.find("=");
 		std::vector<std::string> _GET_structure;
@@ -509,7 +507,7 @@ public:
 		return {url_map,query_string};
 	};
 	
-	struct RequestVariables {
+	struct  RequestVariables {
 	    std::istringstream iss;
 	    std::istringstream iss_line;
 	    std::string method;
@@ -534,7 +532,7 @@ public:
 	
 	static std::string get_request_data(std::string name,char buffer[1024]) {
 		
-    	RequestVariables rv = get_request_variables(buffer);
+    	 RequestVariables rv = get_request_variables(buffer);
 
 		if (name == "url_path") {			
 			char target_char = '?';
