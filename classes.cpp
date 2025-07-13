@@ -180,7 +180,6 @@ public:
 	std::string __CLI__;
 	std::string _request_file_buffer = "HTTP/1.1 404 OK\nContent-Type: " \
 	    "text/plain\nContent-Length: 28\n\nLithon speed file not found!";
-	std::vector<std::pair<std::string, std::string>> _GET_parameters;
 	static std::string _GET_response;
 	
 	static std::string get_request_type(char* buffer) {
@@ -610,25 +609,20 @@ public:
     	close(this->_server_fd);
 	};
 	
-	void make() {
-
-		int bound_socket, set_sock_opt, opt = 2;
+	void create_socket() {
 		this->_addrlen = sizeof(this->_address);
     	this->_server_fd = (socket(AF_INET, SOCK_STREAM, 0));
     	if (this->_server_fd == -1) {
 			std::cerr << "Error creating socket" << std::endl;
 			return;
 	    }
-		// Forcefully attaching socket to the port 8080
+	}
+	
+	void set_socket_option() {
+	    int set_sock_opt, opt = 2;
 		try{
-			// Verify server file descriptor
-			bool socket_valid = is_socket_valid(this->_server_fd);
-			set_sock_opt = setsockopt(
-				this->_server_fd, 
-				SOL_SOCKET, 
-				SO_REUSEADDR, 
-				&opt, 
-				sizeof(opt));
+			set_sock_opt = setsockopt(this->_server_fd, SOL_SOCKET, SO_REUSEADDR, 
+				&opt, sizeof(opt));
 		} catch (const std::system_error e) {
         	std::cerr << "Error: Invalid argument - " << e.what() << std::endl;
 		}
@@ -636,14 +630,18 @@ public:
         	perror("setsockopt");
         	exit(EXIT_FAILURE);
     	}
-		// set sockaddr_in structure
-		this->_address.sin_family = AF_INET;
+	}
+	
+	void set_socket_address(){
+	    this->_address.sin_family = AF_INET;
 		this->_address.sin_addr.s_addr = INADDR_ANY;
 		this->_address.sin_port = htons(PORT_ONE);
 		this->_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 		std::cout << "Server listening on port: " << PORT_ONE<< std::endl;
-		// Binding the socket to the address
-		bound_socket = bind(
+	}
+	
+	void bind_socket_to_address() {
+	    int bound_socket = bind(
 			this->_server_fd, 
 			(struct sockaddr *)&this->_address, 
 			sizeof(this->_address));
@@ -652,12 +650,22 @@ public:
         	exit(EXIT_FAILURE);
     	}
 		std::cout << "Server file descriptor: " << this->_server_fd << std::endl;
-		// Listening for connections
+	}
+	
+	void listen_for_connections() {
 		this->_conn = listen(this->_server_fd, 3);
 		if (this->_conn < 0) {
-			perror("listen failed ooff");
+			perror("listen failed");
 			exit(EXIT_FAILURE);
 		}
+	}
+	
+	void make() {
+	    this->create_socket();
+    	this->set_socket_option();
+		this->set_socket_address();
+		this->bind_socket_to_address();
+		this->listen_for_connections();
 	}
 };
 
