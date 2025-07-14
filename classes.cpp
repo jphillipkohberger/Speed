@@ -441,7 +441,9 @@ public:
 		}
 		return "Not found";
 	};
-	
+	/***
+	 * TODO: this is the next one to go and get refactored
+ 	*/
 	static std::tuple<std::map<std::string, std::string>, std::string>  
 	    split_query_string_map(std::string query_string) {
 	        
@@ -488,9 +490,7 @@ public:
 	
 	static std::tuple<std::map<std::string, std::string>, std::string>  
 	    get_query_string_map(char buffer[1024]) {
-	
 	    RequestVariables rv = get_request_variables(buffer);
-	
 		std::string request(buffer);
 		std::cout << "Url path: " <<   rv.url_path << std::endl;
 		std::map<std::string, std::string> url_map;
@@ -515,9 +515,7 @@ public:
 	};
 	
 	static RequestVariables get_request_variables(char buffer[1024]) {
-	    
 	    RequestVariables request_variables;
-	    
 	    std::string request(buffer);
     	request_variables.iss.str(request);
     	std::string request_line;
@@ -525,72 +523,40 @@ public:
     	request_variables.iss_line.str(request_line);
     	std::string method, url_path, http_version;
     	request_variables.iss_line >> request_variables.method >> request_variables.url_path >> request_variables.http_version;
-    	
     	return request_variables;
-	}
+	};
 	
-	static std::string get_request_data(std::string name,char buffer[1024]) {
-		
-    	 RequestVariables rv = get_request_variables(buffer);
-
-		if (name == "url_path") {			
-			char target_char = '?';
-    		size_t pos = rv.url_path.find(target_char);
-    		if (pos != std::string::npos) {
-        		rv.url_path = rv.url_path.erase(pos);
-    		}
-			return rv.url_path;
+	static std::string is_question_query_string(std::string url_path){
+		char target_char = '?';
+		size_t pos = url_path.find(target_char);
+		if (pos != std::string::npos) {
+    		url_path = url_path.erase(pos);
 		}
-		if (name == "method") {
-			return rv.method;
-		}
-		if (name == "http_version") {
-			return rv.http_version;
-		}
-    	std::string data, line;
+		return url_path;
+	};
+	
+	static std::string get_request_body_data(RequestVariables* rv) {
+	    std::string line;
     	int current, previous = -1;
-    	while (std::getline(rv.iss, line)) {
-        	if (line.rfind(name, 0) == 0) {
-            	data = line.substr(name.length());
-            	size_t start_pos = data.find_first_not_of(" \t");
-            	if (start_pos != std::string::npos) {
-                    data = data.substr(start_pos);
-            	}
-            	size_t end_pos = data.find_first_of(" \t\r\n");
-            	if(end_pos != std::string::npos) {
-               	    data = data.substr(0, end_pos);
-            	}
-            	return data;
-        	}
+    	while (std::getline(rv->iss, line)) {
         	size_t end_pos = line.find_last_not_of(" \t\n\r\f\v");
-            if (std::string::npos == end_pos) {
-                current = 1;
-            }
-            if (previous != -1) {
-                if (previous == 1) {
-                    if (name == "post_data") {
-                        return line;
-                    }
-                }
-            }
+            if (std::string::npos == end_pos) current = 1;
+            if (previous != -1 && previous== 1) return line;
             previous = current;
     	}
     	return "";
 	};
 	
-	bool is_socket_valid(int sockfd) {
-  		if (fcntl(sockfd, F_GETFD) == -1) {
-    		if (errno == EBADF) {
-      			return false;
-    		} else {
-      			throw std::system_error(errno, std::generic_category(), "fcntl");
-    		}
-  		}
-  		return true;
+	static std::string get_request_data(std::string name,char buffer[1024]) {
+    	RequestVariables rv = get_request_variables(buffer);
+		if (name == "url_path") return is_question_query_string(rv.url_path);
+		if (name == "method") return rv.method;
+		if (name == "http_version") return rv.http_version;
+		if (name == "post_data") return get_request_body_data(&rv);
+    	return "";
 	};
 	
 	void start(std::string url = "") {
-
 		char buffer[BUFFER_SIZE] = {0};
 		// Accepting and handling connections
 		this->_new_socket = accept(
@@ -616,7 +582,7 @@ public:
 			std::cerr << "Error creating socket" << std::endl;
 			return;
 	    }
-	}
+	};
 	
 	void set_socket_option() {
 	    int set_sock_opt, opt = 2;
@@ -630,7 +596,7 @@ public:
         	perror("setsockopt");
         	exit(EXIT_FAILURE);
     	}
-	}
+	};
 	
 	void set_socket_address(){
 	    this->_address.sin_family = AF_INET;
@@ -638,7 +604,7 @@ public:
 		this->_address.sin_port = htons(PORT_ONE);
 		this->_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 		std::cout << "Server listening on port: " << PORT_ONE<< std::endl;
-	}
+	};
 	
 	void bind_socket_to_address() {
 	    int bound_socket = bind(
@@ -650,7 +616,7 @@ public:
         	exit(EXIT_FAILURE);
     	}
 		std::cout << "Server file descriptor: " << this->_server_fd << std::endl;
-	}
+	};
 	
 	void listen_for_connections() {
 		this->_conn = listen(this->_server_fd, 3);
@@ -658,7 +624,7 @@ public:
 			perror("listen failed");
 			exit(EXIT_FAILURE);
 		}
-	}
+	};
 	
 	void make() {
 	    this->create_socket();
@@ -666,7 +632,7 @@ public:
 		this->set_socket_address();
 		this->bind_socket_to_address();
 		this->listen_for_connections();
-	}
+	};
 };
 
 class Server {
