@@ -441,49 +441,55 @@ public:
 		}
 		return "Not found";
 	};
-	/***
-	 * TODO: this is the next one to go and get refactored
- 	*/
+	
+	static std::tuple<std::map<std::string, std::string>, std::string> 
+	    get_json_from_query_string(std::string query_string) {
+        std::map<std::string, std::string> url_map;
+        try {
+            json parsed_json = json::parse(query_string);
+	        if (parsed_json.is_object()) {
+                for (const auto& item : parsed_json.items()) {
+                    auto value = item.value();
+                    auto key = item.key();
+                    url_map.insert({key,value});
+                }
+	        }
+	        return {url_map, query_string};
+        } catch (const json::parse_error& e) { 
+            std::cout << "RECORDED ERROR" << std::endl;
+            std::cout << e.what() << std::endl;
+            return {url_map, query_string}; 
+        }
+        return {url_map, query_string};
+	}
+	
 	static std::tuple<std::map<std::string, std::string>, std::string>  
 	    split_query_string_map(std::string query_string) {
-	        
 	    std::map<std::string, std::string> url_map;
-	    std::string data_string_type = get_post_data_type(query_string);
-	    if (data_string_type == "JSON") {
-	        try {
-    	        json parsed_json = json::parse(query_string);
-    	        if (parsed_json.is_object()) {
-                    for (const auto& item : parsed_json.items()) {
-                        auto key = item.key();
-                        auto value = item.value();
-                        url_map.insert({key,value});
-                    }
-    	        }
-	        } catch (const json::parse_error& e) {
-            }
-	        return {url_map, query_string};
-	    } else {
-    	    size_t start_pos = query_string.find_first_of("?");
-    		if (start_pos == std::string::npos) {
-    			start_pos = 0;
+	    if (get_post_data_type(query_string) == "JSON") return get_json_from_query_string(query_string);
+        /**
+         * TODO: Refactor rest of function
+         */
+	    size_t start_pos = query_string.find_first_of("?");
+		if (start_pos == std::string::npos) {
+			start_pos = 0;
+		}
+		query_string = query_string.substr(
+			start_pos, std::string::npos);
+		query_string = query_string.substr(1);
+		std::stringstream ss(query_string);
+		std::string pair;
+		int i = 0;
+		
+		while (std::getline(ss, pair, '&')) {
+    		size_t pos = pair.find('=');
+    		if (pos != std::string::npos) {
+       		std::string key = pair.substr(0, pos);
+        		std::string value = pair.substr(pos + 1);
+				url_map.insert({key,value});
+				i++;
     		}
-    		query_string = query_string.substr(
-    			start_pos, std::string::npos);
-    		query_string = query_string.substr(1);
-    		std::stringstream ss(query_string);
-    		std::string pair;
-    		int i = 0;
-    		
-    		while (std::getline(ss, pair, '&')) {
-        		size_t pos = pair.find('=');
-        		if (pos != std::string::npos) {
-           		std::string key = pair.substr(0, pos);
-            		std::string value = pair.substr(pos + 1);
-    				url_map.insert({key,value});
-    				i++;
-        		}
-    		}
-	    }
+		}
 		
 	    return {url_map, query_string};  
     };     
@@ -492,12 +498,10 @@ public:
 	    get_query_string_map(char buffer[1024]) {
 	    RequestVariables rv = get_request_variables(buffer);
 		std::string request(buffer);
-		std::cout << "Url path: " <<   rv.url_path << std::endl;
 		std::map<std::string, std::string> url_map;
 		std::string query_string =  rv.url_path;
 		int question = query_string.find("?");
 		int equals = query_string.find("=");
-		std::vector<std::string> _GET_structure;
 		if (question != std::string::npos && equals != std::string::npos) {	
     		auto [rl_map, qstr] = split_query_string_map(query_string);
     		url_map = rl_map;
