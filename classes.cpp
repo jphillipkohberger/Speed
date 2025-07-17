@@ -455,43 +455,46 @@ public:
                 }
 	        }
 	        return {url_map, query_string};
-        } catch (const json::parse_error& e) { 
-            std::cout << "RECORDED ERROR" << std::endl;
-            std::cout << e.what() << std::endl;
+        } catch (const json::parse_error& e) {
             return {url_map, query_string}; 
         }
         return {url_map, query_string};
 	}
 	
-	static std::tuple<std::map<std::string, std::string>, std::string>  
-	    split_query_string_map(std::string query_string) {
-	    std::map<std::string, std::string> url_map;
-	    if (get_post_data_type(query_string) == "JSON") return get_json_from_query_string(query_string);
-        /**
-         * TODO: Refactor rest of function
-         */
+	static std::string remove_question_from_query_string(std::string query_string) {
 	    size_t start_pos = query_string.find_first_of("?");
 		if (start_pos == std::string::npos) {
 			start_pos = 0;
+		} else {
+		    start_pos = 1;
 		}
 		query_string = query_string.substr(
 			start_pos, std::string::npos);
-		query_string = query_string.substr(1);
-		std::stringstream ss(query_string);
+		return query_string;
+	}
+	
+	static std::map<std::string, std::string> split_query(std::string query_string) {
+	    std::map<std::string, std::string> url_map;
+	    std::stringstream ss(remove_question_from_query_string(query_string));
 		std::string pair;
 		int i = 0;
-		
 		while (std::getline(ss, pair, '&')) {
     		size_t pos = pair.find('=');
     		if (pos != std::string::npos) {
-       		std::string key = pair.substr(0, pos);
+       		    std::string key = pair.substr(0, pos);
         		std::string value = pair.substr(pos + 1);
 				url_map.insert({key,value});
 				i++;
     		}
 		}
-		
-	    return {url_map, query_string};  
+		return url_map;
+	}
+	
+	static std::tuple<std::map<std::string, std::string>, std::string>  
+	    split_query_string_map(std::string query_string) {
+	    if (get_post_data_type(query_string) == "JSON") 
+	        return get_json_from_query_string(query_string);
+	    return {split_query(query_string), query_string};  
     };     
 	
 	static std::tuple<std::map<std::string, std::string>, std::string>  
