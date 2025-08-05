@@ -1,3 +1,1 @@
-This project is an MVP of an asynchronous HTTP server written in C/C++, showcasing a Foreign Function Interface (FFI)-based approach in using low-level system calls to execute higher-level language code (e.g., Python, Node.js, PHP, Java) directly in response to HTTP requests.
-
-The goal is to eliminate the traditional HTTP contract between web servers and application runtimes by enabling the server to invoke language runtimes natively via FFI. This bypasses conventional protocols, improving performance and reducing overhead by allowing direct execution of high-level code from the server layer.
+HTTP server written in C/C++, showcasing a Foreign Function Interface based approach in using low-level system calls to execute higher-level language code (e.g., Python, Node.js, PHP, Java); ultimately eliminating the traditional HTTP contract between web servers and application runtimes by enabling this server to invoke language runtimes natively.
