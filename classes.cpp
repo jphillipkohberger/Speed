@@ -410,7 +410,8 @@ class Socket {
         if (start_pos == std::string::npos) {
             start_pos = 0;
         } else {
-            start_pos = 1;
+            // there is a question mark, increment to remove from string
+            start_pos++;
         }
         query_string = query_string.substr(start_pos, std::string::npos);
         return query_string;
