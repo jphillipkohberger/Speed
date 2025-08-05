@@ -32,7 +32,7 @@
 
 #define PORT_ONE 8080
 #define BUFFER_SIZE 1024
-#define WEB_ROOT "../web" // relative to this file
+#define WEB_ROOT "../lithon" // relative to this file
 #define THREAD_POOL_SIZE 5
 #define TASK_COUNT 10
 

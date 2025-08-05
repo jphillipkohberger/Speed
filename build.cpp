@@ -5,9 +5,7 @@
 #include <iostream>
 
 //./server many pool &>/dev/null &
-// curl --http0.9 -d "foo=bar&bar=foo" -H "Content-Type:
-// application/x-www-form-urlencoded" -X POST
-// http://localhost:8080/test/html/index.html pkill server && g++ -std=c++17
+// curl --http0.9 -d "foo=bar&bar=foo" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:8080/test/html/index.html
 // main.cpp -o server && ./server many pooled & curl --http0.9 -d
 // "foo=bar&bar=foo" -H "Content-Type: application/x-www-form-urlencoded" -X
 // POST http://127.0.0.1:8080/test/html/index.html
