@@ -28,11 +28,15 @@
 #include <tuple>
 #include <vector>
 
+
+#include <string.h>
+#include <ctype.h>
+
 #include "nlohmann/json.hpp"
 
 #define PORT_ONE 8080
 #define BUFFER_SIZE 1024
-#define WEB_ROOT "../lithon"    // relative to this file
+#define WEB_ROOT "/mnt/c/Users/phill/source/repos/SpeedApplyFE/speedapplyfe"    // relative to this file
 #define THREAD_POOL_SIZE 5
 #define TASK_COUNT 10
 
@@ -276,8 +280,37 @@ class Socket {
         return file.substr(file.rfind("/") + 1);
     };
 
-    static bool is_executable(std::string request_file) {
-        return (access(request_file.c_str(), X_OK) == 0);
+    static bool is_executable(const char *filename) {
+        if (filename == NULL) return false;
+    
+        // List of known executable extensions
+        const char *extensions[] = {
+            ".exe", ".bat", ".cmd", ".com", // Windows
+            ".sh", ".run", ".bin", ".out",  // Unix/Linux
+        };
+        size_t ext_count = sizeof(extensions) / sizeof(extensions[0]);
+    
+        size_t len = strlen(filename);
+        if (len == 0) return false;
+    
+        // Compare filename's ending with each extension (case-insensitive)
+        for (size_t i = 0; i < ext_count; i++) {
+            size_t ext_len = strlen(extensions[i]);
+            if (len >= ext_len) {
+                const char *file_ext = filename + (len - ext_len);
+                // Case-insensitive comparison
+                bool match = true;
+                for (size_t j = 0; j < ext_len; j++) {
+                    if (tolower((unsigned char)file_ext[j]) != 
+                        tolower((unsigned char)extensions[i][j])) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) return true;
+            }
+        }
+        return false;
     }
 
     static void system_exec_file() {
@@ -297,10 +330,19 @@ class Socket {
         }
     };
 
-    static std::string get_response_string(std::string data) {
+    static std::string get_response_string(std::string data, std::string request_file) {
+
+        size_t pos = request_file.find_first_of(".");
+        pos++;
+        std::string ext;
+        if (pos != std::string::npos) {
+            ext = request_file.substr(pos,std::string::npos);
+        } else {
+            ext = "text";
+        }
         std::string request_file_buffer = data;
-        request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: "
-            "text/plain\nContent-Length: " +
+        request_file_buffer = "HTTP/1.1 200 OK\nContent-Type: " +
+            ext + "\nContent-Length: " +
             std::to_string(request_file_buffer.length()) +
             "\n\n" + request_file_buffer;
         return request_file_buffer;
@@ -312,7 +354,7 @@ class Socket {
         if (file.good()) {
             std::
                 cout << "Working execing script 2" << request_file << std::endl;
-            if (is_executable(request_file)) {
+            if (is_executable(request_file.c_str())) {
                 std::string file_name = get_file_name(request_file);
                 std::string file_type = get_file_type(request_file);
                 std::
@@ -320,11 +362,11 @@ class Socket {
                     std::endl;
                 std::string response = "Working on executing script";
                 system_exec_file();
-                return get_response_string(response);
+                return get_response_string(response,request_file);
             } else {
                 std::stringstream buffer;
                 buffer << file.rdbuf();
-                return get_response_string(buffer.str());
+                return get_response_string(buffer.str(),request_file);
             }
         }
         return "";
@@ -386,11 +428,10 @@ class Socket {
         try {
             json parsed_json = json::parse(query_string);
             if (parsed_json.is_object()) {
- for (const auto & item:parsed_json.items()) {
+                for (const auto & item:parsed_json.items()) {
                     auto value = item.value();
                     auto key = item.key();
-                    url_map.insert( {
-                                   key, value});
+                    url_map.insert( {key, value});
                 }
             }
             return {
@@ -428,9 +469,7 @@ class Socket {
             if (pos != std::string::npos) {
                 std::string key = pair.substr(0, pos);
                 std::string value = pair.substr(pos + 1);
-                url_map.insert( {
-                               key, value}
-                );
+                url_map.insert( {key, value});
                 i++;
             }
         }
