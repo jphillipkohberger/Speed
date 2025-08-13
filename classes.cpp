@@ -36,7 +36,9 @@
 
 #define PORT_ONE 8080
 #define BUFFER_SIZE 1024
-#define WEB_ROOT "/mnt/c/Users/phill/source/repos/SpeedApplyFE/speedapplyfe"    // relative to this file
+// files are served from this directory
+// relative to this file
+#define WEB_ROOT "/mnt/c/Users/phill/source/repos/SpeedApplyFE/speedapplyfe/dist"
 #define THREAD_POOL_SIZE 5
 #define TASK_COUNT 10
 
@@ -210,7 +212,8 @@ class Socket {
     };
 
     void start_many() {
-        ThreadPool *thread_pool = new ThreadPool(5);
+        //change thread pool size
+        ThreadPool *thread_pool = new ThreadPool(20);
 
         int i = 0;
 
@@ -331,12 +334,24 @@ class Socket {
     };
 
     static std::string get_response_string(std::string data, std::string request_file) {
-
+        // determine Cnotent-Type
         size_t pos = request_file.find_first_of(".");
         pos++;
         std::string ext;
         if (pos != std::string::npos) {
             ext = request_file.substr(pos,std::string::npos);
+            if (ext == "css") {
+                ext = "text/css";
+            }
+            if (ext == "js") {
+                ext = "text/javascript";
+            }
+            if (ext == "svg" || ext == "xml") {
+                ext = "image/svg+xml";
+            }
+            if (ext == "html") {
+                ext = "text/html";
+            }
         } else {
             ext = "text";
         }
