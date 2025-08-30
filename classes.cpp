@@ -389,8 +389,17 @@ class Socket {
 
     static std::string process_request_response(std::string request_file) {
         std::ifstream file(request_file);
-        if (file.good())
+
+        if (file.good()) {
             return process_file_exists(request_file);
+        } else {
+            /**
+            * @TODO remove this need to add logic for redirecting all files to 
+            * a configured file - this is just for testing 
+            */
+            return process_file_exists("/mnt/c/Users/phill/source/repos/SpeedApplyFE/speedapplyfe/dist/index.html");
+        }
+
         std::cout << "File not exists: " << request_file << std::endl;
         return "HTTP/1.1 200 OK\nContent-Type: "
             "text/plain\nContent-Length: 28\n\nSpeed server file not found!";
